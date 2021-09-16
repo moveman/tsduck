@@ -692,6 +692,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tsxml", "tsxml.vcxproj", "{
 		{1AD31049-26B0-4922-89CF-778040DFC51E} = {1AD31049-26B0-4922-89CF-778040DFC51E}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tsplugin_corrupt", "tsplugin_corrupt.vcxproj", "{EB78F7B5-7B2B-4F43-97F8-07433B9B2D05}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -1580,6 +1582,14 @@ Global
 		{59553F6E-567A-4C24-8711-9F7F47472988}.Release|Win32.Build.0 = Release|Win32
 		{59553F6E-567A-4C24-8711-9F7F47472988}.Release|x64.ActiveCfg = Release|x64
 		{59553F6E-567A-4C24-8711-9F7F47472988}.Release|x64.Build.0 = Release|x64
+		{EB78F7B5-7B2B-4F43-97F8-07433B9B2D05}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EB78F7B5-7B2B-4F43-97F8-07433B9B2D05}.Debug|Win32.Build.0 = Debug|Win32
+		{EB78F7B5-7B2B-4F43-97F8-07433B9B2D05}.Debug|x64.ActiveCfg = Debug|x64
+		{EB78F7B5-7B2B-4F43-97F8-07433B9B2D05}.Debug|x64.Build.0 = Debug|x64
+		{EB78F7B5-7B2B-4F43-97F8-07433B9B2D05}.Release|Win32.ActiveCfg = Release|Win32
+		{EB78F7B5-7B2B-4F43-97F8-07433B9B2D05}.Release|Win32.Build.0 = Release|Win32
+		{EB78F7B5-7B2B-4F43-97F8-07433B9B2D05}.Release|x64.ActiveCfg = Release|x64
+		{EB78F7B5-7B2B-4F43-97F8-07433B9B2D05}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
