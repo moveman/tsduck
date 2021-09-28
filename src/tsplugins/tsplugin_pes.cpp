@@ -775,7 +775,37 @@ void ts::PESPlugin::handleSEI(PESDemux& demux, const PESPacket& pkt, uint32_t se
         dsize = _max_dump_size;
         *_out << " (truncated)";
     }
-    *_out << ":" << std::endl << UString::Dump(pkt.payload() + offset, dsize, _hexa_flags | UString::ASCII, 4, _hexa_bpl);
+    if (sei_type == AVC_SEI_PIC_TIMING) {
+    	// FIXME assumed CpbDpbDelaysPresentFlag == false, pic_struct_present_flag == true
+    	const uint8_t *p = pkt.payload() + offset;
+		uint8_t nFrame = 0;
+		uint8_t sec = 0;
+		uint8_t min = 0;
+		uint8_t hour = 0;
+		bool full = false;
+		if (size >= 6) {
+			nFrame = GetUInt8(p + 2);
+			full = (GetUInt8(p + 1) & 0x04) != 0;
+			if (full) {
+				sec = GetUInt8(p + 3) >> 2;
+				min = ((GetUInt8(p + 3) & 0x03) << 4) + ((GetUInt8(p + 4) & 0x00f0) >> 4);
+				hour = ((GetUInt8(p + 4) & 0x0f) << 1) + ((GetUInt8(p + 5) & 0x0080) >> 7);
+			} else {
+				if (GetUInt8(p + 3) & 0x0080) {
+					sec = (GetUInt8(p + 3) >> 1) & 0x003f;
+				}
+				if (GetUInt8(p + 3) & 0x0001) {
+					min = (GetUInt8(p + 4) >> 2) & 0x003f;
+				}
+				if (GetUInt8(p + 4) & 0x0002) {
+					hour = ((GetUInt8(p + 4) & 0x01) << 4) + ((GetUInt8(p + 5) & 0xf0) >> 4);
+				}
+			}
+    	*_out << ":" << std::endl << UString::Format(u"timecode: full %d, %02d:%02d:%02d.%03dt\n", {full, hour, min, sec, nFrame});
+		}
+    } else {
+    	*_out << ":" << std::endl << UString::Dump(pkt.payload() + offset, dsize, _hexa_flags | UString::ASCII, 4, _hexa_bpl);
+    }
 }
 
 
