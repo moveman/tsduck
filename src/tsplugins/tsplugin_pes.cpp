@@ -47,6 +47,8 @@
 #include "tsAVC.h"
 #include "tsHEVC.h"
 #include "tsVVC.h"
+#include <chrono>
+
 TSDUCK_SOURCE;
 
 
@@ -736,6 +738,24 @@ void ts::PESPlugin::handleAccessUnit(PESDemux&, const PESPacket& pes, uint8_t au
     }
 }
 
+static std::string getUTCTime()
+{
+	using std::chrono::system_clock;
+	auto currentTime = std::chrono::system_clock::now();
+	char buffer[80];
+
+	auto transformed = currentTime.time_since_epoch().count() / 1000000;
+
+	auto millis = transformed % 1000;
+
+	std::time_t tt;
+	tt = system_clock::to_time_t ( currentTime );
+	auto timeinfo = gmtime (&tt);
+	strftime (buffer,80,"%F %H:%M:%S",timeinfo);
+	sprintf(buffer, "%s.%03d",buffer,(int)millis);
+
+	return std::string(buffer);
+}
 
 //----------------------------------------------------------------------------
 // This hook is invoked when an AVC SEI is found.
@@ -783,8 +803,10 @@ void ts::PESPlugin::handleSEI(PESDemux& demux, const PESPacket& pkt, uint32_t se
 		uint8_t min = 0;
 		uint8_t hour = 0;
 		bool full = false;
+		uint8_t field = 0;
 		if (size >= 6) {
 			nFrame = GetUInt8(p + 2);
+			field = GetUInt8(p + 1) & 0x01;
 			full = (GetUInt8(p + 1) & 0x04) != 0;
 			if (full) {
 				sec = GetUInt8(p + 3) >> 2;
@@ -801,7 +823,7 @@ void ts::PESPlugin::handleSEI(PESDemux& demux, const PESPacket& pkt, uint32_t se
 					hour = ((GetUInt8(p + 4) & 0x01) << 4) + ((GetUInt8(p + 5) & 0xf0) >> 4);
 				}
 			}
-    	*_out << ":" << std::endl << UString::Format(u"timecode: full %d, %02d:%02d:%02d.%03dt\n", {full, hour, min, sec, nFrame});
+    	*_out << ": " << getUTCTime() << UString::Format(u" timecode: full %d, %02d:%02d:%02d:%03d.%d\n", {full, hour, min, sec, nFrame, field});
 		}
     } else {
     	*_out << ":" << std::endl << UString::Dump(pkt.payload() + offset, dsize, _hexa_flags | UString::ASCII, 4, _hexa_bpl);
