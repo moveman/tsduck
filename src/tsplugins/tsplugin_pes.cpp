@@ -51,7 +51,8 @@
 
 TSDUCK_SOURCE;
 
-
+#define HEVC_SEI_TIMECODE 136
+#define BREAK_UNLESS(expr) {if (!(expr)) {break;}}
 //----------------------------------------------------------------------------
 // Plugin definition
 //----------------------------------------------------------------------------
@@ -823,8 +824,44 @@ void ts::PESPlugin::handleSEI(PESDemux& demux, const PESPacket& pkt, uint32_t se
 					hour = ((GetUInt8(p + 4) & 0x01) << 4) + ((GetUInt8(p + 5) & 0xf0) >> 4);
 				}
 			}
-    	*_out << ": " << getUTCTime() << UString::Format(u" timecode: full %d, %02d:%02d:%02d:%03d.%d\n", {full, hour, min, sec, nFrame, field});
+    	*_out << ": " << getUTCTime() << UString::Format(u" timecode: full %d  %02d:%02d:%02d:%03d.%d\n", {full, hour, min, sec, nFrame, field});
 		}
+    } else if (sei_type == HEVC_SEI_TIMECODE) {
+    	AVCParser parser(pkt.payload() + offset, size);
+    	int dummy;
+    	int hour = 0, min = 0, sec = 0, nFrame = 0, discon = 0, full = 0, field = 0;
+    	do {
+    		BREAK_UNLESS(parser.readBits(dummy, 2));
+    		int timestamp = 0;
+			BREAK_UNLESS(parser.readBits(timestamp, 1));
+			if (timestamp) {
+				BREAK_UNLESS(parser.readBits(field, 1));
+				BREAK_UNLESS(parser.readBits(dummy, 5));
+				BREAK_UNLESS(parser.readBits(full, 1));
+				BREAK_UNLESS(parser.readBits(discon, 1));
+				BREAK_UNLESS(parser.readBits(dummy, 1));
+				BREAK_UNLESS(parser.readBits(nFrame, 9));
+				if (full) {
+					BREAK_UNLESS(parser.readBits(sec, 6));
+					BREAK_UNLESS(parser.readBits(min, 6));
+					BREAK_UNLESS(parser.readBits(hour, 5));
+				} else {
+					BREAK_UNLESS(parser.readBits(dummy, 1));
+					if (dummy) {
+						BREAK_UNLESS(parser.readBits(sec, 6));
+					}
+					BREAK_UNLESS(parser.readBits(dummy, 1));
+					if (dummy) {
+						BREAK_UNLESS(parser.readBits(min, 6));
+					}
+					BREAK_UNLESS(parser.readBits(dummy, 1));
+					if (dummy) {
+						BREAK_UNLESS(parser.readBits(hour, 5));
+					}
+				}
+			}
+	    	*_out << ": " << getUTCTime() << UString::Format(u" timecode: discon %d full %d  %02d:%02d:%02d:%03d.%d\n", {discon, full, hour, min, sec, nFrame, field});
+     	} while(0);
     } else {
     	*_out << ":" << std::endl << UString::Dump(pkt.payload() + offset, dsize, _hexa_flags | UString::ASCII, 4, _hexa_bpl);
     }
